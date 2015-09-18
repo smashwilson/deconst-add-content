@@ -34,6 +34,11 @@ def validate!
 end
 
 def clone
+  if File.directory? @repo_name
+    puts "deleting existing repository"
+    FileUtils.rm_f @repo_name, force: true
+  end
+
   puts "cloning repository"
   sh "git clone --origin upstream #{@repo_git_upstream}"
   Dir.chdir @repo_name
