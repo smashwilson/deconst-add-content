@@ -141,7 +141,7 @@ def submit_pr
 
   puts "creating pull request"
   Octokit.create_pull_request "rackerlabs/#{@repo_name}",
-    "#{Octokit.user.login}:master", "deconst-build",
+    "master", "#{Octokit.user.login}:deconst-build",
     "Configure Travis build", <<EOM
 Configure this repository's Travis build. Once merged, all content committed to the master branch of this repository will be submitted to [developer.rackspace.com](https://developer.rackspace.com/).
 
