@@ -98,10 +98,13 @@ EOF
 end
 
 def issue_apikey
+  puts "Issuing a new API key"
   resp = HTTParty.post "https://developer.rackspace.com:9000/keys",
     query: { "named" => repo_name },
     headers: { "Authorization" => "deconst apikey=\"#{admin_api_key}\"" }
   apikey = resp.parsed_response["apikey"]
+
+  puts "Issued API key: [#{apikey}]"
 
   {
     "PROD1" => apikey[0..79]
@@ -111,13 +114,16 @@ def issue_apikey
 end
 
 def setup_travis key_parts
+  puts "Setting up the build"
   sh "travis login --github-token #{github_access_token}"
   sh "travis enable -r rackerlabs/#{repo_name}"
 
   key_parts.each_pair do |name, value|
+    puts "Encrypting #{name}"
     sh "travis encrypt -r rackerlabs/#{repo_name} --add env.global #{name}=#{value}"
   end
 
+  puts "Encrypting Slack token"
   sh "travis encrypt -r rackerlabs/#{repo_name} --add notifications.slack #{slack_travis_token}"
 end
 
@@ -137,6 +143,7 @@ end
 def main
   clone
   subdir = find_root
+  puts "Content is in the subdirectory: [#{subdir}]"
 
   template_deconst subdir
   template_script_cibuild subdir
@@ -161,3 +168,5 @@ puts "- content ID base: #{content_id_base}"
 puts "- git clone URL: #{repo_git_upstream}"
 puts "- authenticated to GitHub as: #{Octokit.user.login}"
 puts "- pwd: #{Dir.pwd}"
+
+main
