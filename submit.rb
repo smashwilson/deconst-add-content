@@ -135,6 +135,26 @@ def setup_travis key_parts
   sh "travis encrypt -r rackerlabs/#{@repo_name} --add notifications.slack #{@slack_travis_token}"
 end
 
+def readme_badge
+  puts "Adding a Travis build badge to the README"
+
+  badge_md = "[![Build Status](https://travis-ci.org/rackerlabs/#{@repo_name}.svg?branch=master)](https://travis-ci.org/rackerlabs/#{@repo_name})"
+
+  unless File.exists? 'README.md'
+    File.write('README.md', <<EOM)
+#{@repo_name}
+---
+
+#{badge_md}
+EOM
+    return
+  end
+
+  current = File.read('README.md')
+  modified = current.sub(/(#[^#\n]+)/, "\\1\n\n#{badge_md}\n")
+  File.write('README.md', modified)
+end
+
 def submit_pr
   puts "committing and pushing"
   sh 'git commit -am "Configure Deconst build"'
@@ -161,6 +181,7 @@ def main
 
   key_parts = issue_apikey
   setup_travis key_parts
+  readme_badge
 
   submit_pr
 
