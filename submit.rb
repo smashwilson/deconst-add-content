@@ -4,6 +4,7 @@ require 'find'
 require 'fileutils'
 require 'json'
 require 'octokit'
+require 'httparty'
 
 @repo_name = ARGV[0]
 @repo_git_upstream = "git@github.com:rackerlabs/#{@repo_name}.git"
@@ -33,10 +34,10 @@ def validate!
   end
 end
 
-def clone
+def clone_repo
   if File.directory? @repo_name
     puts "deleting existing repository"
-    FileUtils.rm_f @repo_name, force: true
+    FileUtils.rm_rf @repo_name
   end
 
   puts "cloning repository"
@@ -57,7 +58,8 @@ def clone
 end
 
 def find_root
-  Find.find('.').detect { |path| File.basename(path) == "conf.py" }
+  conf_path = Find.find('.').detect { |path| File.basename(path) == "conf.py" }
+  File.dirname(conf_path).gsub(/^\.\//, '')
 end
 
 def template_deconst subdir
@@ -146,7 +148,7 @@ EOM
 end
 
 def main
-  clone
+  clone_repo
   subdir = find_root
   puts "Content is in the subdirectory: [#{subdir}]"
 
