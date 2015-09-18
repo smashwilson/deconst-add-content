@@ -90,6 +90,7 @@ fi
 cd #{subdir}
 deconst-preparer-sphinx
 EOF
+  File.chmod(0755, "script/cibuild")
 end
 
 def template_travis
