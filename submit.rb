@@ -165,13 +165,14 @@ def submit_pr
   sh 'git push -u origin deconst-build'
 
   puts "creating pull request"
-  Octokit.create_pull_request "rackerlabs/#{@repo_name}",
+  pr = Octokit.create_pull_request "rackerlabs/#{@repo_name}",
     "master", "#{Octokit.user.login}:deconst-build",
     "Configure Travis build", <<EOM
 Configure this repository's Travis build. Once merged, all content committed to the master branch of this repository will be submitted to [developer.rackspace.com](https://developer.rackspace.com/).
 
 Note that the content won't be *routed* and accessible until we submit a follow-on pull request to [the control repository](https://github.com/rackerlabs/nexus-control).
 EOM
+  puts "Submitted pull request: #{pr.html_url}"
 end
 
 def main
