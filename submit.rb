@@ -97,6 +97,7 @@ def template_travis
 language: python
 python:
 - '3.4'
+sudo: false
 install:
 - pip install -e git+https://github.com/deconst/preparer-sphinx.git#egg=deconstrst
 script:
