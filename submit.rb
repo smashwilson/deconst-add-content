@@ -59,6 +59,12 @@ end
 
 def find_root
   conf_path = Find.find('.').detect { |path| File.basename(path) == "conf.py" }
+
+  unless conf_path
+    $stderr.puts "#{@repo_name} doesn't contain a 'conf.py' file."
+    exit 1
+  end
+
   File.dirname(conf_path).gsub(/^\.\//, '')
 end
 
