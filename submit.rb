@@ -5,12 +5,12 @@ require 'fileutils'
 require 'json'
 require 'octokit'
 
-repo_name = ARGV[1]
-repo_git_upstream = "git@github.com:rackerlabs/#{repo_name}.git"
-content_id_base = "https://github.com/rackerlabs/#{repo_name}/"
-admin_api_key = ENV['ADMIN_APIKEY']
-github_access_token = ENV['GITHUB_TOKEN']
-slack_travis_token = ENV['SLACK_TOKEN']
+@repo_name = ARGV[0]
+@repo_git_upstream = "git@github.com:rackerlabs/#{@repo_name}.git"
+@content_id_base = "https://github.com/rackerlabs/#{@repo_name}/"
+@admin_apikey = ENV['ADMIN_APIKEY']
+@github_access_token = ENV['GITHUB_TOKEN']
+@slack_travis_token = ENV['SLACK_TOKEN']
 
 def sh command
   system command
@@ -22,9 +22,9 @@ end
 def validate!
   missing = []
 
-  missing << '- ADMIN_APIKEY' unless admin_api_key
-  missing << '- GITHUB_TOKEN' unless github_access_token
-  missing << '- SLACK_TOKEN' unless slack_travis_token
+  missing << '- ADMIN_APIKEY' unless @admin_apikey
+  missing << '- GITHUB_TOKEN' unless @github_access_token
+  missing << '- SLACK_TOKEN' unless @slack_travis_token
 
   unless missing.empty?
     $stderr.puts "Missing required configuration settings:"
@@ -35,19 +35,19 @@ end
 
 def clone
   puts "cloning repository"
-  sh "git clone --origin upstream #{repo_git_upstream}"
-  Dir.chdir repo_name
+  sh "git clone --origin upstream #{@repo_git_upstream}"
+  Dir.chdir @repo_name
 
   puts "forking repository"
-  Octokit.fork("rackerlabs/#{repo_name}")
+  Octokit.fork("rackerlabs/#{@repo_name}")
 
-  until Ockokit.repository? "#{Octokit.user.login}/#{repo_name}"
+  until Ockokit.repository? "#{Octokit.user.login}/#{@repo_name}"
     puts "..."
     sleep 5
   end
   puts "fork complete"
 
-  sh "git remote add origin git@github.com:#{Ocktokit.user.login}/#{repo_name}.git"
+  sh "git remote add origin git@github.com:#{Ocktokit.user.login}/#{@repo_name}.git"
   sh "git checkout -b deconst-build"
 end
 
@@ -58,7 +58,7 @@ end
 def template_deconst subdir
   File.write("#{subdir}/_deconst.json", <<EOF)
 {
-  "contentIDBase": "#{content_id_base}"
+  "contentIDBase": "#{@content_id_base}"
 }
 EOF
 end
@@ -100,44 +100,44 @@ end
 def issue_apikey
   puts "Issuing a new API key"
   resp = HTTParty.post "https://developer.rackspace.com:9000/keys",
-    query: { "named" => repo_name },
-    headers: { "Authorization" => "deconst apikey=\"#{admin_api_key}\"" }
+    query: { "named" => @repo_name },
+    headers: { "Authorization" => "deconst apikey=\"#{@admin_apikey}\"" }
   apikey = resp.parsed_response["apikey"]
 
   puts "Issued API key: [#{apikey}]"
 
   {
-    "PROD1" => apikey[0..79]
-    "PROD2" => apikey[80..159]
+    "PROD1" => apikey[0..79],
+    "PROD2" => apikey[80..159],
     "PROD3" => apikey[160..-1]
   }
 end
 
 def setup_travis key_parts
   puts "Setting up the build"
-  sh "travis login --github-token #{github_access_token}"
-  sh "travis enable -r rackerlabs/#{repo_name}"
+  sh "travis login --github-token #{@github_access_token}"
+  sh "travis enable -r rackerlabs/#{@repo_name}"
 
   key_parts.each_pair do |name, value|
     puts "Encrypting #{name}"
-    sh "travis encrypt -r rackerlabs/#{repo_name} --add env.global #{name}=#{value}"
+    sh "travis encrypt -r rackerlabs/#{@repo_name} --add env.global #{name}=#{value}"
   end
 
   puts "Encrypting Slack token"
-  sh "travis encrypt -r rackerlabs/#{repo_name} --add notifications.slack #{slack_travis_token}"
+  sh "travis encrypt -r rackerlabs/#{@repo_name} --add notifications.slack #{@slack_travis_token}"
 end
 
 def submit_pr
   sh 'git commit -am "Configure Deconst build"'
   sh 'git push -u origin deconst-build'
 
-  Octokit.create_pull_request "rackerlabs/#{repo_name}",
+  Octokit.create_pull_request "rackerlabs/#{@repo_name}",
     "#{Octokit.user.login}:master", "deconst-build",
     "Configure Travis build", <<EOM
 Configure this repository's Travis build. Once merged, all content committed to the master branch of this repository will be submitted to [developer.rackspace.com](https://developer.rackspace.com/).
 
 Note that the content won't be *routed* and accessible until we submit a follow-on pull request to [the control repository](https://github.com/rackerlabs/nexus-control).
-EOM #'
+EOM
 end
 
 def main
@@ -158,14 +158,14 @@ end
 validate!
 
 Octokit.configure do |c|
-  c.access_token = github_access_token
+  c.access_token = @github_access_token
 end
 
 Dir.chdir "#{ENV['HOME']}/autoadd/"
 
-puts "Adding content repository: #{repo_name}"
-puts "- content ID base: #{content_id_base}"
-puts "- git clone URL: #{repo_git_upstream}"
+puts "Adding content repository: #{@repo_name}"
+puts "- content ID base: #{@content_id_base}"
+puts "- git clone URL: #{@repo_git_upstream}"
 puts "- authenticated to GitHub as: #{Octokit.user.login}"
 puts "- pwd: #{Dir.pwd}"
 
