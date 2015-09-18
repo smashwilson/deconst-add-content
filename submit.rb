@@ -41,13 +41,13 @@ def clone
   puts "forking repository"
   Octokit.fork("rackerlabs/#{@repo_name}")
 
-  until Ockokit.repository? "#{Octokit.user.login}/#{@repo_name}"
+  until Octokit.repository? "#{Octokit.user.login}/#{@repo_name}"
     puts "..."
     sleep 5
   end
   puts "fork complete"
 
-  sh "git remote add origin git@github.com:#{Ocktokit.user.login}/#{@repo_name}.git"
+  sh "git remote add origin git@github.com:#{Octokit.user.login}/#{@repo_name}.git"
   sh "git checkout -b deconst-build"
 end
 
