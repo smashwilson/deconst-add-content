@@ -160,7 +160,8 @@ end
 
 def submit_pr
   puts "committing and pushing"
-  sh 'git commit -am "Configure Deconst build"'
+  sh 'git add .'
+  sh 'git commit -m "Configure Deconst build"'
   sh 'git push -u origin deconst-build'
 
   puts "creating pull request"
