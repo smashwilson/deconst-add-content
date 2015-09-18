@@ -135,9 +135,11 @@ def setup_travis key_parts
 end
 
 def submit_pr
+  puts "committing and pushing"
   sh 'git commit -am "Configure Deconst build"'
   sh 'git push -u origin deconst-build'
 
+  puts "creating pull request"
   Octokit.create_pull_request "rackerlabs/#{@repo_name}",
     "#{Octokit.user.login}:master", "deconst-build",
     "Configure Travis build", <<EOM
@@ -158,6 +160,8 @@ def main
 
   key_parts = issue_apikey
   setup_travis key_parts
+
+  submit_pr
 
   puts "All set up ✨"
 end
