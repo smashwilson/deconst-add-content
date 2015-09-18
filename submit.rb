@@ -152,6 +152,8 @@ EOM
   end
 
   current = File.read('README.md')
+  return if current =~ /#{badge_md}/
+
   modified = current.sub(/(#[^#\n]+)/, "\\1\n\n#{badge_md}\n")
   File.write('README.md', modified)
 end
