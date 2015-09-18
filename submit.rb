@@ -144,6 +144,8 @@ def main
 
   key_parts = issue_apikey
   setup_travis key_parts
+
+  puts "All set up ✨"
 end
 
 validate!
