@@ -25,7 +25,6 @@ def validate!
 
   missing << '- ADMIN_APIKEY' unless @admin_apikey
   missing << '- GITHUB_TOKEN' unless @github_access_token
-  missing << '- SLACK_TOKEN' unless @slack_travis_token
 
   unless missing.empty?
     $stderr.puts "Missing required configuration settings:"
@@ -142,8 +141,10 @@ def setup_travis key_parts
     sh "travis encrypt -r rackerlabs/#{@repo_name} --add env.global #{name}=#{value}"
   end
 
-  puts "Encrypting Slack token"
-  sh "travis encrypt -r rackerlabs/#{@repo_name} --add notifications.slack #{@slack_travis_token}"
+  if @slack_travis_token
+    puts "Encrypting Slack token"
+    sh "travis encrypt -r rackerlabs/#{@repo_name} --add notifications.slack #{@slack_travis_token}"
+  end
 end
 
 def readme_badge
