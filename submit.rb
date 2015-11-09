@@ -58,10 +58,10 @@ def clone_repo
 end
 
 def find_root
-  conf_path = Find.find('.').detect { |path| File.basename(path) == "conf.py" }
+  conf_path = Find.find('.').detect { |path| File.basename(path) == "_config.yml" }
 
   unless conf_path
-    $stderr.puts "#{@repo_name} doesn't contain a 'conf.py' file."
+    $stderr.puts "#{@repo_name} doesn't contain a '_config.yml' file."
     exit 1
   end
 
@@ -94,19 +94,23 @@ else
 fi
 
 cd #{subdir}
-deconst-preparer-sphinx
+deconst-preparer-jekyll
 EOF
   File.chmod(0755, "script/cibuild")
 end
 
 def template_travis
   File.write(".travis.yml", <<EOF)
-language: python
-python:
-- '3.4'
+language: ruby
+ruby:
+- 2.2.0
 sudo: false
 install:
-- pip install -e git+https://github.com/deconst/preparer-sphinx.git#egg=deconstrst
+- gem install rake bundler
+- git clone https://github.com/deconst/preparer-jekyll.git /tmp/preparer-jekyll
+- cd /tmp/preparer-jekyll
+- rake install
+- cd ${TRAVIS_BUILD_DIR}
 script:
 - script/cibuild
 EOF
