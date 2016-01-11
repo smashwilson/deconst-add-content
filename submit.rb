@@ -10,6 +10,7 @@ require 'httparty'
 @repo_git_upstream = "git@github.com:rackerlabs/#{@repo_name}.git"
 @content_id_base = "https://github.com/rackerlabs/#{@repo_name}/"
 @admin_apikey = ENV['ADMIN_APIKEY']
+@existing_apikey = ENV['DECONST_APIKEY']
 @github_access_token = ENV['GITHUB_TOKEN']
 @slack_travis_token = ENV['SLACK_TOKEN']
 
@@ -23,7 +24,7 @@ end
 def validate!
   missing = []
 
-  missing << '- ADMIN_APIKEY' unless @admin_apikey
+  missing << '- ADMIN_APIKEY or DECONST_APIKEY' unless @admin_apikey or @existing_apikey
   missing << '- GITHUB_TOKEN' unless @github_access_token
   missing << '- SLACK_TOKEN' unless @slack_travis_token
 
@@ -113,13 +114,19 @@ EOF
 end
 
 def issue_apikey
-  puts "Issuing a new API key"
-  resp = HTTParty.post "https://developer.rackspace.com:9000/keys",
-    query: { "named" => @repo_name },
-    headers: { "Authorization" => "deconst apikey=\"#{@admin_apikey}\"" }
-  apikey = resp.parsed_response["apikey"]
+  if @admin_apikey
+    puts "Issuing a new API key"
+    resp = HTTParty.post "https://developer.rackspace.com:9000/keys",
+      query: { "named" => @repo_name },
+      headers: { "Authorization" => "deconst apikey=\"#{@admin_apikey}\"" }
+    apikey = resp.parsed_response["apikey"]
 
-  puts "Issued API key: [#{apikey}]"
+    puts "Issued API key: [#{apikey}]"
+  else
+    puts "Using existing API key"
+
+    apikey = @existing_apikey
+  end
 
   {
     "PROD1" => apikey[0..79],
