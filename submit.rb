@@ -114,11 +114,7 @@ EOF
 end
 
 def issue_apikey
-  if @existing_apikey
-    puts "Using existing API key"
-
-    apikey = @existing_apikey
-  else
+  if @admin_apikey
     puts "Issuing a new API key"
     resp = HTTParty.post "https://developer.rackspace.com:9000/keys",
       query: { "named" => @repo_name },
@@ -126,6 +122,10 @@ def issue_apikey
     apikey = resp.parsed_response["apikey"]
 
     puts "Issued API key: [#{apikey}]"
+  else
+    puts "Using existing API key"
+
+    apikey = @existing_apikey
   end
 
   {
